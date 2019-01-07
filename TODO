@@ -1,0 +1,50 @@
+# --- Goals ---
+- PhD Thesis Chapter 9 on the Beta Bursts Application (March 2019)
+- Paper w/ SWDFT application to Bursts (If Desired by Collaborators)
+
+# --- Tasks --- 
+- Convert neuro-bursts directory to a Git repository
+
+- Fit the MLE procedure on the neuro-bursts application 
+	+ 
+
+- Read, Summarize Local Harmonic Regression Literature 
+	+ Irizarry 1998 Additive Sound (DONE)
+	+ Irizarry JASA
+	+ Irizarry Weighted Time-Series Analysis 
+	+ Irizarry Asymptotics 
+	+ Irizarry Locally meaningful 
+	+ Irizarry Local Likelihood 
+	+ Convert Directory Notebook into .html webpage 
+
+- Understand the exact steps Mikael/Pawel used to produce their plots 
+	+ Write a new section in Beta-Bursts document that summarizes the procedure
+	+ E-mail Pawel to understand which parts of the code correspond to which parts of the procedure. 
+
+- Theory: The "above threshold" method may underestimate the length of a signal drastically, because it doesn't account for the build up. 
+
+- Look into restricting F to be a Fourier Frequency.
+	+ This is what RAFA did!
+	+ Or, extend to use an over-complete Fourier dictionary: 
+		+ Can we extend the FFT to this case? Non-uniform FFT?
+		"The most well-known example is the standard Fourier dictionary for which we have the fast Fourier transform algorithm. A typical implementation requires 2 · n storage locations and 4·n·J multiplications if n is dyadic: n = 2J . Hence for very long signals we can apply Φ and ΦT with much less storage and time than the matrices would nominally require. Simple adaptation of this idea leads to an algorithm for over-complete Fourier dictionaries."
+
+# --- Longer Term Tasks ---
+- Read three articles on how to compute simple filters
+	+ https://tomroelandts.com/articles/how-to-create-a-simple-low-pass-filter
+	+ https://tomroelandts.com/articles/how-to-create-a-simple-high-pass-filter
+	+ https://tomroelandts.com/articles/how-to-create-simple-band-pass-and-band-reject-filters
+	+ Write Blog Post on Filters for Statisticians 
+
+- Read, summarize the Multitaper Spectrogram Estimation paper:
+	+ https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=6767046 (DONE)
+	+ Write my own Multitaper periodogram to understand it. 
+	+ Write Blog Post on why we use a Multi-taper Estimate (compared with the Periodogram)
+
+- Read, summarize Percival's chapter on "completing the analysis" for periodicity tests
+
+- Read the Multi-Taper Bootstrap Paper 
+	+ https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=8494714
+
+- Read the Multitaper State Space paper 
+	+ http://www.pnas.org/content/115/1/E5
