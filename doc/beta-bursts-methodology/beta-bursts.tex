@@ -37,9 +37,7 @@
 \maketitle
 
 \section{Introduction}
-I propose a statistical model to detect ``Bursts'' in Local Field Potential (LFP) time-series, and give a maximum-likelihood estimation procedure for this model. 
-
-This document proposes a statistical model to detect ``Bursts'' and gives a maximum likelihood estimation procedure for this model. By bursts, I mean local (in time) signal oscillations at a particular frequency. The motivation for developing burst detection methodology comes from \cite{lundqvist2016gamma}, who finds that bursts, {\it not} sustained oscillations, underly working memory. 
+This document proposes a statistical model to detect ``Bursts'' in Local Field Potential (LFP) signals, and give a maximum-likelihood estimation procedure for this model. By bursts, I mean local (in time) signal oscillations at a particular frequency. The motivation for developing burst detection methodology comes from \cite{lundqvist2016gamma}, who finds that bursts, {\it not} sustained oscillations, underly working memory. 
 
 \section{Literature Review}
 \label{sec:lit-review}
@@ -66,7 +64,7 @@ A graphical example of a theoretical burst is shown in Figure \ref{fig:theoretic
 \begin{itemize}
 \setlength\itemsep{.1em}
 	\item $A$: Amplitude. $A \in [0, \infty]$
-	\item $F$: Frequency. Number of complete cycles in a length $N$ signal. $F \in [0, \frac{1}{2}]$
+	\item $F$: Frequency. Number of cycles in a length $N$ signal. $F \in [0, \frac{1}{2}]$
 	\item $\phi$: Phase. $\phi \in [0, 2 \pi]$
 	\item $S$: Start of oscillation. $S \in [0, 1, \ldots, N - 2]$
 	\item $L$: Length of oscillation. $L \in [1, 2, \ldots, N - 2]$
@@ -83,10 +81,10 @@ x_t &=& g_t + \epsilon_t
 
 \section{Estimation}
 \label{sec:estimation}
-Now that we've proposed a Bursts model (Equation \ref{eq:statistical-model}), given an arbitrary time-series, we want to estimate the parameters. We use maximum likelihood for parameter estimation. Section \ref{sec:analytic} derives analytic solutions for 3 of the 6 parameters, and Section \ref{sec:numerical} shows how to solve for the remaining 3 parameters numerically, using the Spectrogram. 
+Now that we've proposed a statistical model for bursts (Equation \ref{eq:statistical-model}), we need to estimate the parameters given an arbitrary signal. We use maximum likelihood for parameter estimation. Section \ref{sec:analytic} derives analytic solutions for three of the six parameters (A, $\phi$, and $\sigma$), using a standard trick from harmonic regression. Section \ref{sec:numericalslf} shows how to solve for the remaining three parameters (S, L, and F) numerically, using the Spectrogram. 
 
-\subsection{Analytic Solutions for $A, \phi$, and $\sigma$}
-\label{sec:analytic}
+\subsection{Estimating $A, \phi$, and $\sigma$}
+\label{sec:aphisigma}
 
 Following Equation \ref{eq:statistical-model}, we know that $x_t \sim N(g_t, \sigma^2)$. Denote $\theta = [A, F, \phi, S, L, \sigma]$ as our vector of unknown parameters, and say that we observe a length $N$ time-series ${\bf x} = [x_0, x_1, \ldots, x_{N - 1}]$. The joint pdf of {\bf x} is:
 
@@ -99,10 +97,10 @@ Following Equation \ref{eq:statistical-model}, we know that $x_t \sim N(g_t, \si
 
 \begin{eqnarray}
 \label{eq:likelihood}
-	L(\theta) &=& \prod_{t=0}^{N-1} \frac{1}{\sqrt{2 \pi} \sigma} \exp(\frac{-(x_t - g_t)^2}{2 \sigma^2})
+	L(\theta | {\bf x}) &=& \prod_{t=0}^{N-1} \frac{1}{\sqrt{2 \pi} \sigma} \exp(\frac{-(x_t - g_t)^2}{2 \sigma^2})
 \end{eqnarray}
 
-\noindent And the log-likelihood is:
+\noindent And the log-likelihood is proportional to
 
 \begin{eqnarray}
 \label{eq:loglikelihood}
@@ -115,7 +113,7 @@ Following Equation \ref{eq:statistical-model}, we know that $x_t \sim N(g_t, \si
 	\hat{\theta}_{ML} &=& \argmax_{\theta} \ell(\theta)
 \end{eqnarray}
 
-Since $S$ and $L$ are integers, we will solve for them numerically. Similarly, it is hard to get analytic solutions for $F$, so we solve for this numerically as well. At the end of this section, we show how we can use the Spectrogram to get starting values numerical solutions. For now, assume that $S$, $L$, and $F$ are known parameters. Then we have
+This section assumes that S, L, and F are known, and we will show how to solve for them numerically in the next section. Then we have
 
 \begin{eqnarray}
 	\ell(A, \phi, \sigma | S, L, F) &\propto& -N \log(\sigma) - \frac{1}{2 \sigma^2} \sum_{t=0}^{N-1} (x_t - A \cos(\frac{2 \pi F t}{N} + \phi) \cdot \mathbb{1}_{S, S+L-1}(t))^2
@@ -127,7 +125,7 @@ Next, notice that for any value of $\sigma$, the log-likelihood is {\it maximize
 	J(A, \phi) &=& \sum_{t=0}^{N-1} (x_{t} - A \cos(\frac{2 \pi F t}{N} + \phi) \cdot \mathbb{1}_{S, S+L-1}(t))^2
 \end{eqnarray}
 
-\noindent Which looks like least squares. The only problem is that the cosine factor is a non-linear function, but we can linearize it with the following trigonometric identity:
+\noindent Which looks like least squares. The only problem is that the cosine factor is non-linear, but we can linearize it with the following trigonometric identity:
 
 \begin{eqnarray}
 	A \cos(\frac{2 \pi F t}{N} + \phi) &=& A\cos(\phi)\cos(\frac{2 \pi F t}{N})  - A \sin(\phi) \sin(\frac{2 \pi F t}{N})
@@ -168,6 +166,7 @@ Equation \ref{eq:localbetas} is just multiple linear regression, which means we 
 \noindent $J(\beta_1, \beta_2)$ can now be written as:
 
 \begin{eqnarray}
+	\label{eq:sumsquares}
 	J(\beta_1, \beta_2) &=& ({\bf x} - {\bf U} {\bf \beta})^T ({\bf x} - {\bf U} {\bf \beta}) 
 \end{eqnarray}
 
@@ -192,29 +191,37 @@ Equation \ref{eq:localbetas} is just multiple linear regression, which means we 
 
 \noindent Similar to standard estimates of $\sigma$ with normal errors. 	
 
-So, if we assume $S$, $L$, and $F$ are known, we can estimate $\hat{A}$, $\hat{\phi}$, and $\hat{\sigma}$ analytically. But in practice, we don't know the values of $S$, $L$, and $F$, so we need to estimate them with numerical methods. This is where we use the Spectrogram. 
+So, if we assume $S$, $L$, and $F$ are known, we can estimate $\hat{A}$, $\hat{\phi}$, and $\hat{\sigma}$ analytically. But in practice, we don't know the values of $S$, $L$, and $F$, and we need to estimate them as well. This is where we use the Spectrogram. 
 
-\subsection{Analytic Justification for Spectrogram Based Starting Values}
-\label{sec:analyticnumerical}
-One might wonder if it's {\it also} possible to analytically solve for the parameter $F$. This section considers what that would look like. If we extend our minimization to include $F$, we have:
+\subsection{Estimating S, L, and F}
+\label{sec:slf}
+Section \ref{sec:aphisigma} shows that, if we {\it know} S, L, and F, we have analytic solutions to the maximum likelihood estimates of A, $\phi$, and $\sigma$. So the next question is, how can we estimate S, L, and F? Recall the sum of squares term we minimized in Equation \ref{eq:sumsquares}
 
 \begin{eqnarray}
-	J(\hat{\beta_1}, \hat{\beta_2}, F) &=& ({\bf x} - {\bf U} \hat{\beta})^T ({\bf x} - {\bf U} \hat{\beta})
+	J(\hat{\beta_1}, \hat{\beta_2}) &=& ({\bf x} - {\bf U} \hat{\beta})^T ({\bf x} - {\bf U} \hat{\beta})
 \end{eqnarray}
+
+\noindent Since {\bf U} includes S, L, and F, we can extend this minimization to these three parameters
+
+\begin{eqnarray}
+\label{eq:extendmin}
+	J(\hat{\beta_1}, \hat{\beta_2}, S, L, F) &=& ({\bf x} - {\bf U} \hat{\beta})^T ({\bf x} - {\bf U} \hat{\beta})
+\end{eqnarray}
+
 
 \noindent Plugging in Equation \ref{eq:betahat} gives (\cite{kay1993fundamentals} Equation 7.65):
 
 \begin{eqnarray}
-	J(\hat{\beta_1}, \hat{\beta_2}, F) &=& {\bf x}^T ({\bf I} - {\bf U} ({\bf U}^T {\bf U})^{-1} {\bf U}^T) {\bf x}
+	J(\hat{\beta_1}, \hat{\beta_2}, S, L, F) &=& {\bf x}^T ({\bf I} - {\bf U} ({\bf U}^T {\bf U})^{-1} {\bf U}^T) {\bf x}
 \end{eqnarray}
 
-\noindent Which is equivalent to finding the value of $F$ that maximizes:
+\noindent Which is equivalent to finding the values of S, L, and F that maximize
 
 \begin{eqnarray}
-	\argmax_{F} && {\bf x}^{T} {\bf U} ({\bf U}^T {\bf U})^{-1} {\bf U}^T {\bf x}
+	\argmax_{S, L, F} && {\bf x}^{T} {\bf U} ({\bf U}^T {\bf U})^{-1} {\bf U}^T {\bf x}
 \end{eqnarray}
 
-\noindent We can rewrite this maximization in terms of {\bf c}, {\bf s}, and {\bf x}:
+\noindent Since ${\bf U} = [{\bf c}, {\bf s}]$, we can re-write this maximization as
 
 $$
 \begin{bmatrix}
@@ -231,23 +238,30 @@ $$
 \end{bmatrix}
 $$
 
-\noindent We can approximate the two diagonal elements of the middle term with:
+\noindent We can approximate the diagonal terms in the $2 \times 2$ matrix as
 
 \begin{eqnarray}
-	{\bf c}^T {\bf c} &\approx& \frac{L}{2} \nonumber \\
-	{\bf s}^T {\bf s} &\approx& \frac{L}{2} 
+	{\bf c}^T {\bf c} &=& \sum_{t=0}^{N-1} \cos(\frac{2 \pi F t}{N})^2 \mathbb{1}_{S, S+L-1}(t) \approx \frac{L}{2} \nonumber \\
+	{\bf s}^T {\bf s} &=& \sum_{t=0}^{N-1} \sin(\frac{2 \pi F t}{N})^2 \mathbb{1}_{S, S+L-1}(t) \approx \frac{L}{2} \nonumber 
 \end{eqnarray}
 
 \noindent For the off diagonal terms, we have:
 
 \begin{eqnarray}
+\label{eq:offdiags}
 	{\bf c}^T {\bf s} &=& {\bf s}^T {\bf c} \nonumber \\
-	&=& \sum_{t=S}^{S+L-1} \cos(\frac{2 \pi F t}{N}) \sin(\frac{2 \pi F t}{N}) \nonumber \\
-	&=& 2 \sum_{t=S}^{S+L-1} \sin(\frac{4 \pi F t}{N}) \nonumber \\
-	% &=& 2 \sin(\frac{2 \pi F (2S + L - 1)}{N}) D_{L}(\frac{4 \pi F}{N})
+	&=& \sum_{t=0}^{N-1} \cos(\frac{2 \pi F t}{N}) \sin(\frac{2 \pi F t}{N}) \mathbb{1}_{S,S+L-1}(t) \nonumber \\
+	&=& 2 \sum_{t=0}^{N-1} \sin(\frac{4 \pi F t}{N}) \mathbb{1}_{S,S+L-1}(t) \nonumber \\
 \end{eqnarray}
 
-\noindent When the interval $(S, S+L-1)$ forms a complete cycle, we have that ${\bf c}^T {\bf s} \approx 0$. While this isn't always true, we assume it for now to keep the derivations simple. Then we have
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[width = 12cm, scale=1]{images/off-diagonal.png}
+  \caption{Off Diagonal Terms. N=256, L=10-200, S=30, F=16,28,20. }
+\label{fig:offdiagonal}
+\end{figure}
+
+\noindent And this is actually the key difference between our problem and the example in \cite{kay1993fundamentals}. In \cite{kay1993fundamentals}, since this summation is over an entire cycle, Equation \ref{eq:offdiags} is $\approx$ 0. But for our problem, we need to include this term, since it only cancels out when $L$ is a complete cycle (see Figure \ref{fig:offdiagonal} for a demonstration). So for now, let ${\bf c}^T {\bf s} = z(S, L, F, N)$, or $z$ for short. Note that we can bound $z$ in the range $[-2, 2]$. Then our expression is
 
 $$
 \approx 
@@ -256,8 +270,8 @@ $$
 {\bf s}^T {\bf x} 
 \end{bmatrix}^T
 \begin{bmatrix}
-\frac{L}{2} & 0\\ 
-0 & \frac{L}{2}	
+\frac{L}{2} & z \\ 
+z & \frac{L}{2}	
 \end{bmatrix}^{-1}
 \begin{bmatrix}
 {\bf c}^T {\bf x} \\
@@ -265,74 +279,71 @@ $$
 \end{bmatrix}
 $$
 
-\noindent Simplifying this gives:
+The inverse of the inner matrix is
+
+$$
+\frac{1}{\frac{L^2}{4} - z^2}
+\begin{bmatrix}
+\frac{L}{2} & -z \\
+-z & \frac{L}{2}
+\end{bmatrix}
+\approx 
+\frac{4}{L^2}
+\begin{bmatrix}
+\frac{L}{2} & -z \\
+-z & \frac{L}{2}
+\end{bmatrix}
+$$
+
+\noindent Plugging this back in gives 
 
 \begin{eqnarray}
-	\frac{2}{L} [(\sum_{t=S}^{S+L-1} x_t \cos(\frac{2 \pi F t}{N}))^2 + (\sum_{t=S}^{S+L-1} \sin(\frac{2 \pi F t}{N}))^2]&=& \frac{2}{L} |\sum_{t=S}^{S+L-1} x_{t} \omega_N^{-tF}|^2 \nonumber 
+	\frac{4}{L^2}[\frac{L}{2} ({\bf c}^T {\bf x})^2 + \frac{L}{2} ({\bf s}^T {\bf x})^2 - 2 z ({\bf c}^T {\bf x}) ({\bf s}^T {\bf x})] &=& \frac{2}{L}[({\bf c}^T {\bf x})^2 + ({\bf s}^T {\bf x})^2] - \frac{8z}{L^2} ({\bf c}^T {\bf x}) ({\bf s}^T {\bf x}) \nonumber 
 \end{eqnarray}
 
-\noindent And if we let $\frac{f}{L} = \frac{F}{N}$, this simplifies to
+\noindent Since the first term on the RHS is normalized by $1/L$, and the second term is normalized by $\frac{1}{L^2}$, the first term dominates this maximization (and if $z = 0$, or close to it, we know that the second term on the RHS goes away). Therefore, we focus on maximizing the first term in this expression. Notice that
 
-\begin{eqnarray} 
-\label{eq:maximumslf}
-	&& \frac{2}{L} | \sum_{t=S}^{S+L-1} x_t \omega_L^{-tf}|^2
+\begin{eqnarray}
+\label{eq:maxslfspec}
+	\frac{2}{L} [ ({\bf c}^T {\bf x})^2 + ({\bf s}^T {\bf x})^2] &=& \frac{2}{L} [ (\sum_{t=0}^{N-1} x_t \cos(\frac{2 \pi F t}{N}) \mathbb{1}_{S,S+L-1}(t))^2 + (\sum_{t=0}^{N-1} x_t \sin(\frac{2 \pi F t}{N}) \mathbb{1}_{S,S+L-1}(t))^2]  \nonumber \\
+	&=& \frac{2}{L} |\sum_{t=0}^{N-1} x_t \omega_N^{-tF} \mathbb{1}_{S,S+L-1}(t)|^2 \nonumber \\
+	&=& \frac{2}{L} |\sum_{t=S}^{S+L-1} x_t \omega_N^{-tF}|^2
 \end{eqnarray}
 
-\noindent Which looks very similar to the formula for the Periodogram. Specifically, recall that the Sliding Window Discrete Fourier Transform (SWDFT) for length $n$ windows is:
+Which looks strikingly similar to the Periodogram (he MLE estimate in \cite{kay1993fundamentals}). Recall the definition of the Sliding Window Discrete Fourier Transform (SWDFT), with length $n$ window size
 
 \begin{eqnarray}
 \label{eq:swdft}
-	a_{k, p} &=& \sum_{j=0}^{n-1} x_{p-n+1+j} \omega_n^{-jk}
+	a_{k, p, n} &=& \sum_{j=0}^{n-1} x_{p-n+1+j} \omega_n^{-jk} \nonumber \\
+	k &=& 0, 1, \ldots, n - 1 \nonumber \\
+	p &=& n - 1, n, \ldots N - 1 
 \end{eqnarray}
 
-\noindent Which shows that Equation \ref{eq:maximumslf} is the maximum of the SWDFT with length $L$ windows. 
-
-So, by assuming that the local signal interval $(S, S+L-1)$ has an integer number of complete cycles, the value of $F$ that maximizes the likelihood is the maximum of the SWDFT with length $L$ windows. Nicely, this also tells us that the values of $S$ and $L$ that maximize the likelihood are the values of $S$ and $L$ that correspond to the maximum of the Spectrogram. We use these insights to formally specify the parameters in the numerical search. 
-
-\subsection{Numerical Solutions for $S$, $L$, and $F$}
-\label{sec:numericalslf}
-Now that we have justified using the Spectrogram to determine starting values for estimation of $S$, $L$, and $F$, this section more formally specifies which values we use. To estimate $F$, we simply use the maximum of the Spectrogram. To keep things simple, we estimate the Spectrogram using the Sliding Window DFT (Equation \ref{eq:swdft}). Then the maximum of is:
+\noindent And if we let $\frac{f}{L} = \frac{F}{N}$, we can interpret Equation \ref{eq:maxslfspec} as a SWDFT with length $L$ windows
 
 \begin{eqnarray}
-	(\hat{k}, \hat{p}) &=& \argmax_{k, p} |a_{k,p}|^2
+\label{eq:optimizationslf}
+	\argmax_{S, L, F} && \frac{2}{L} |\sum_{t=S}^{S+L-1} x_t \omega_L^{-tf}|^2 \nonumber 
 \end{eqnarray}
 
-And since the maximum of the SWDFT corresponds to the frequency closest to the true frequency (see Section 3.3. of \cite{richardson2018timeseries}), we can fix the range of $F$ to search as:
+\noindent Equation \ref{eq:optimizationslf} tells us that our estimates of S, L, and F will be the values that maximize the Sliding Window DFT across varying window sizes.
+
+So in practice, how would we make these estimates? The first step would be to find the maximum squared modulus SWDFT across window sizes
 
 \begin{eqnarray}
-	F_{min} &=& (\hat{k} - \frac{1}{2}) \cdot \frac{N}{n} \nonumber \\
-	F_{max} &=& (\hat{k} + \frac{1}{2}) \cdot \frac{N}{n} \nonumber
-\end{eqnarray}	
-
-To understand how we specified the range for $S$ and $L$, consider Figure \ref{fig:slrange}. Figure \ref{fig:slrange} shows the time-series corresponding to frequency $\hat{k}$ of the Spectrogram. Now, we know that the local periodic signal occurs when this time-series is is large, and in particular, where there are consecutive large values of the periodogram. For this reason, we first determine the range of large values surrounding the maximum (e.g. $a_{\hat{k}, \hat{p}}$). To do this, we first determine a threshold for ``large'' values, which may be determined through either simulation, asymptotic, or an empirical estimation if possible. Then we extract the values:
-
-\begin{eqnarray}
-	p_{min} &=& \text{ Largest value to the left of $\hat{p}$ above a threshold} \nonumber \\
-	p_{max} &=& \text{ Largest value to the right of $\hat{p}$ above a threshold} \nonumber	
+\label{eq:maxswdftwindow}
+	(\hat{k}, \hat{p}, \hat{n}) &=&\argmax_{k,p,n} |a_{k, p, n}|^2
 \end{eqnarray}
 
-\begin{figure}[!ht]
-  \centering
-  \includegraphics[width = 12cm, scale=1]{images/numerical-params.png}
-  \caption{Frequency $k$ time-series of the SWDFT (e.g. the Spectrogram). }
-\label{fig:slrange}
-\end{figure}
-
-Now we use $p_{min}$ and $p_{max}$ to specify the range of $S$ and $L$ to numerically search (to be safe, we could search all combinations, but this would be very expensive computationally). For $S$, we know that the signal starts when the time-series starts getting large. We also know that the time-series starts getting large when more of the oscillations enter the window, so we can set:
+\noindent Which gives the following estimates of S, L, and F
 
 \begin{eqnarray}
-	S_{min} &=& p_{min} - n \nonumber \\
-	S_{max} &=& p_{min}
+	\hat{L} &=& \hat{n} \nonumber \\
+	\hat{S} &=& \hat{p} - \hat{n} + 1 \nonumber \\
+	\hat{F} &=& \frac{\hat{k}}{\hat{n}}
 \end{eqnarray}
 
-Finally, we know that the maximum occurs when the maximum of the oscillating part of the local signal is in the window. So roughly speaking, we can set:
-
-\begin{eqnarray}
-	L_{min} &=& p_{max} - p_{min} - n \nonumber \\
-	L_{max} &=& p_{max} - p_{min} \nonumber 
-\end{eqnarray}	
-
-These are most heuristic for now, but can be more properly specified in future work. 
+\noindent The heavy computational component of this approach is repeatedly computing Spectrograms of varying window sizes. We are currently looking into methods to speed this up. Then with S, L, and F, you can easily obtain analytic solutions from Section \ref{sec:aphisigma} for A, $\phi$, and $\sigma$. If desired, further numerical optimization may be performed around the estimate of $\hat{F}$, which ensures we aren't restricting $F$ to the set of Fourier Frequencies. 
 
 % \section{Results}
 % \label{sec:results}
