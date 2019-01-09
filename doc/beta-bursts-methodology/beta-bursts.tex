@@ -31,7 +31,7 @@
 
 \begin{document}
 
-\title{{\Large A Statistical Model for Burst Detection}}
+\title{{\Large A Statistical Approach to Burst Detection}}
 \author{Lee F. Richardson}
 \date{\today}
 \maketitle
@@ -84,9 +84,7 @@ x_t &=& g_t + \epsilon_t
 
 \section{Estimation}
 \label{sec:estimation}
-
-
-Now that we've proposed a statistical model(Equation \ref{eq:statistical-model}), given an arbitrary signal, we need to estimate the parameters. Section \ref{sec:analytic} derives analytic solutions for three of the six parameters (A, $\phi$, and $\sigma$), using a standard trick from harmonic regression. Section \ref{sec:numericalslf} shows how to solve for the remaining three parameters (S, L, and F) numerically, using a Spectrogram. 
+Now that we've proposed a statistical model(Equation \ref{eq:statistical-model}), given an arbitrary signal, we need to estimate the parameters. Section \ref{sec:aphisigma} derives analytic solutions for three of the six parameters (A, $\phi$, and $\sigma$), using a standard trick from harmonic regression. Section \ref{sec:slf} shows how to solve for the remaining three parameters (S, L, and F) numerically, using a Spectrogram. 
 
 \subsection{Estimating $A, \phi$, and $\sigma$}
 \label{sec:aphisigma}
@@ -98,7 +96,7 @@ Following Equation \ref{eq:statistical-model}, we know that $x_t \sim N(g_t, \si
 	\mathbb{P}(x_0, \ldots, x_{N - 1} | \theta) &=& \prod_{t=0}^{N-1} \frac{1}{\sqrt{2 \pi \sigma^2}} \exp(\frac{-(x_t - g_t)^2}{2 \sigma^2})
 \end{eqnarray}
 
-\noindent Therefore, the likelihood function is:
+\noindent The likelihood function is
 
 \begin{eqnarray}
 \label{eq:likelihood}
@@ -112,38 +110,38 @@ Following Equation \ref{eq:statistical-model}, we know that $x_t \sim N(g_t, \si
 	\ell(\theta) &\propto& -N \log(\sigma) - \frac{1}{2 \sigma^2} \sum_{t=0}^{N-1} (x_t - g_t)^2
 \end{eqnarray}
 
-\noindent The maximum likelihood estimate is:
+\noindent The maximum likelihood estimate is
 
 \begin{eqnarray}
 	\hat{\theta}_{ML} &=& \argmax_{\theta} \ell(\theta)
 \end{eqnarray}
 
-This section assumes that S, L, and F are known, and we will show how to solve for them numerically in the next section. Then we have
+This section assumes S, L, and F are known, and solves for A, $\phi$, and $\sigma$ (the next section shows how to estimate S, L, and F). We have
 
 \begin{eqnarray}
 	\ell(A, \phi, \sigma | S, L, F) &\propto& -N \log(\sigma) - \frac{1}{2 \sigma^2} \sum_{t=0}^{N-1} (x_t - A \cos(\frac{2 \pi F t}{N} + \phi) \cdot \mathbb{1}_{S, S+L-1}(t))^2
 \end{eqnarray}
 
-Next, notice that for any value of $\sigma$, the log-likelihood is {\it maximized} when the quadratic term inside the sum is minimized (since there is a negative sign in front of the sum). With this, we closely follow the second example of Section 7.10 of \cite{kay1993fundamentals}, and let $J(A, \phi)$ be the term inside the sum we want to minimize:
+Next, notice that for any value of $\sigma$, the log-likelihood is {\it maximized} when the quadratic term inside the sum is minimized (since there is a negative sign in front of the sum). With this, we closely follow the second example of Section 7.10 of \cite{kay1993fundamentals}, and let $J(A, \phi)$ be the term inside the sum we want to minimize
 
 \begin{eqnarray}
 	J(A, \phi) &=& \sum_{t=0}^{N-1} (x_{t} - A \cos(\frac{2 \pi F t}{N} + \phi) \cdot \mathbb{1}_{S, S+L-1}(t))^2
 \end{eqnarray}
 
-\noindent Which looks like least squares. The only problem is that the cosine factor is non-linear, but we can linearize it with the following trigonometric identity:
+\noindent This looks exactly like least squares, but the cosine factor is non-linear. We can linearize the cosine factor with the following trigonometric identity
 
 \begin{eqnarray}
 	A \cos(\frac{2 \pi F t}{N} + \phi) &=& A\cos(\phi)\cos(\frac{2 \pi F t}{N})  - A \sin(\phi) \sin(\frac{2 \pi F t}{N})
 \end{eqnarray}
 
-\noindent Then if we define the following coefficients:
+\noindent Then we define the coefficients
 
 \begin{eqnarray}
 	\beta_1 &=& A \cos(\phi) \nonumber \\
 	\beta_2 &=& -A \sin(\phi)
 \end{eqnarray}
 
-\noindent There is a one-to-one correspondence between $(\beta_1, \beta_2)$ and $(A, \phi)$:
+\noindent And there is a one-to-one correspondence between $(\beta_1, \beta_2)$ and $(A, \phi)$:
 
 \begin{eqnarray}
 \label{eq:aptobeta}
@@ -151,14 +149,14 @@ Next, notice that for any value of $\sigma$, the log-likelihood is {\it maximize
 	\phi &=& \arctan(\frac{-\beta_2}{\beta_1})
 \end{eqnarray}
 
-\noindent We can re-write $J(A, \phi)$ instead as a function of the $\beta$'s:
+\noindent With this substitution, we can re-write  $J(A, \phi)$ with $J(\beta_1, \beta_2)$
 
 \begin{eqnarray}
 \label{eq:localbetas}
 	J(\beta_1, \beta_2) &=& \sum_{t=0}^{N-1} (x_t - \beta_1 \cos(\frac{2 \pi F t}{N})  \mathbb{1}_{S, S+L-1}(t) - \beta_2 \sin(\frac{2 \pi F t}{N}) \mathbb{1}_{S, S+L-1}(t))^2
 \end{eqnarray}
 
-Equation \ref{eq:localbetas} is just multiple linear regression, which means we can solve for $\beta$ analytically. We now write $J(\beta_1, \beta_2)$ in matrix-vector notation. Define the following
+And now Equation \ref{eq:localbetas} is multiple linear regression. This means we can solve for $\hat{\beta}_1, \hat{\beta}_2$ analytically. To make thing simpler, we switch to matrix-vector notation with the following definitions
 
 \begin{eqnarray}
 	{\bf c} &=& [\cos(\frac{2 \pi F \cdot 0}{N}) \mathbb{1}_{S,S+L-1}(0),  \cos(\frac{2 \pi F \cdot 1}{N}) \mathbb{1}_{S,S+L-1}(1), \ldots \cos(\frac{2 \pi F \cdot (N-1)}{N}) \mathbb{1}_{S,S+L-1}(N-1)]^T \nonumber \\
@@ -168,21 +166,21 @@ Equation \ref{eq:localbetas} is just multiple linear regression, which means we 
 	\beta &=& [\beta_1, \beta_2]
 \end{eqnarray}
 
-\noindent $J(\beta_1, \beta_2)$ can now be written as:
+\noindent $J(\beta_1, \beta_2)$ can now be written as
 
 \begin{eqnarray}
 	\label{eq:sumsquares}
 	J(\beta_1, \beta_2) &=& ({\bf x} - {\bf U} {\bf \beta})^T ({\bf x} - {\bf U} {\bf \beta}) 
 \end{eqnarray}
 
-\noindent And the estimate for $\hat{\beta}$ is:
+\noindent And our estimate for $\hat{\beta}$ is
 
 \begin{eqnarray}
 \label{eq:betahat}
 	\hat{\beta} &=& ({\bf U}^T {\bf U})^{-1} {\bf U}^T {\bf x} 
 \end{eqnarray}
 
-\noindent Which we transform into $\hat{A}$ and $\hat{\phi}$ using Equation \ref{eq:aptobeta}. For $\sigma$, we have:
+\noindent Which transform into $\hat{A}$ and $\hat{\phi}$ using Equation \ref{eq:aptobeta}. For $\sigma$, we have:
 
 \begin{eqnarray}
 	\frac{\partial \ell}{\partial \sigma} &=& \frac{-N}{\sigma} + \frac{1}{\sigma^3} \sum_{t=S}^{S+L-1} (x_t - g_t)^2
@@ -196,23 +194,22 @@ Equation \ref{eq:localbetas} is just multiple linear regression, which means we 
 
 \noindent Similar to standard estimates of $\sigma$ with normal errors. 	
 
-So, if we assume $S$, $L$, and $F$ are known, we can estimate $\hat{A}$, $\hat{\phi}$, and $\hat{\sigma}$ analytically. But in practice, we don't know the values of $S$, $L$, and $F$, and we need to estimate them as well. This is where we use the Spectrogram. 
+In sum, if S, L, and F are known, we can estimate $\hat{A}$, $\hat{\phi}$, and $\hat{\sigma}$ analytically. But in practice, we don't know S, L, and F, and the next section covers how to estimate them using the Spectrogram. 
 
 \subsection{Estimating S, L, and F}
 \label{sec:slf}
-Section \ref{sec:aphisigma} shows that, if we {\it know} S, L, and F, we have analytic solutions to the maximum likelihood estimates of A, $\phi$, and $\sigma$. So the next question is, how can we estimate S, L, and F? Recall the sum of squares term we minimized in Equation \ref{eq:sumsquares}
+Section \ref{sec:aphisigma} shows that, if we {\it knew} S, L, and F, then we could analytically determine the maximum likelihood estimates of A, $\phi$, and $\sigma$. So the next question is, how can we estimate S, L, and F? To answer this, recall the quadratic term we minimized in the previous section (Equation \ref{eq:sumsquares})
 
 \begin{eqnarray}
 	J(\hat{\beta_1}, \hat{\beta_2}) &=& ({\bf x} - {\bf U} \hat{\beta})^T ({\bf x} - {\bf U} \hat{\beta})
 \end{eqnarray}
 
-\noindent Since {\bf U} includes S, L, and F, we can extend this minimization to these three parameters
+\noindent Since {\bf U} includes S, L, and F, we can extend this minimization to include these three parameters
 
 \begin{eqnarray}
 \label{eq:extendmin}
 	J(\hat{\beta_1}, \hat{\beta_2}, S, L, F) &=& ({\bf x} - {\bf U} \hat{\beta})^T ({\bf x} - {\bf U} \hat{\beta})
 \end{eqnarray}
-
 
 \noindent Plugging in Equation \ref{eq:betahat} gives (\cite{kay1993fundamentals} Equation 7.65):
 
@@ -220,15 +217,17 @@ Section \ref{sec:aphisigma} shows that, if we {\it know} S, L, and F, we have an
 	J(\hat{\beta_1}, \hat{\beta_2}, S, L, F) &=& {\bf x}^T ({\bf I} - {\bf U} ({\bf U}^T {\bf U})^{-1} {\bf U}^T) {\bf x}
 \end{eqnarray}
 
-\noindent Which is equivalent to finding the values of S, L, and F that maximize
+\noindent This is equivalent to finding the values of S, L, and F that maximize 
 
 \begin{eqnarray}
+\label{eq:slfmaximization}
 	\argmax_{S, L, F} && {\bf x}^{T} {\bf U} ({\bf U}^T {\bf U})^{-1} {\bf U}^T {\bf x}
 \end{eqnarray}
 
-\noindent Since ${\bf U} = [{\bf c}, {\bf s}]$, we can re-write this maximization as
+\noindent Since ${\bf U} = [{\bf c}, {\bf s}]$, we can re-write Equation \ref{eq:slfmaximization} as
 
 $$
+\argmax_{S, L, F}
 \begin{bmatrix}
 {\bf c}^T {\bf x} \\
 {\bf s}^T {\bf x} 
@@ -246,6 +245,7 @@ $$
 \noindent We can approximate the diagonal terms in the $2 \times 2$ matrix as
 
 \begin{eqnarray}
+\label{eq:diagnonalapprox}
 	{\bf c}^T {\bf c} &=& \sum_{t=0}^{N-1} \cos(\frac{2 \pi F t}{N})^2 \mathbb{1}_{S, S+L-1}(t) \approx \frac{L}{2} \nonumber \\
 	{\bf s}^T {\bf s} &=& \sum_{t=0}^{N-1} \sin(\frac{2 \pi F t}{N})^2 \mathbb{1}_{S, S+L-1}(t) \approx \frac{L}{2} \nonumber 
 \end{eqnarray}
@@ -266,7 +266,9 @@ $$
 \label{fig:offdiagonal}
 \end{figure}
 
-\noindent And this is actually the key difference between our problem and the example in \cite{kay1993fundamentals}. In \cite{kay1993fundamentals}, since this summation is over an entire cycle, Equation \ref{eq:offdiags} is $\approx$ 0. But for our problem, we need to include this term, since it only cancels out when $L$ is a complete cycle (see Figure \ref{fig:offdiagonal} for a demonstration). So for now, let ${\bf c}^T {\bf s} = z(S, L, F, N)$, or $z$ for short. Note that we can bound $z$ in the range $[-2, 2]$. Then our expression is
+\noindent This is actually the key difference between our problem and the example in \cite{kay1993fundamentals}. In \cite{kay1993fundamentals}, there is no indicator term inside the summation, and since this summation covers a sine function over a period, Equation \ref{eq:offdiags} is $\approx$ 0. In our problem, the off-diagonal terms only cancel out when $L$ has a complete number of cycles (see Figure \ref{fig:offdiagonal} for a demonstration), so we need to leave it in the expression. 
+
+For notational purposes, let $z(N, F, S, L)$ be the off-diagonal term. To be concise, we call this $z$ for the remainder of the section. Then we have
 
 $$
 \approx 
@@ -284,7 +286,7 @@ z & \frac{L}{2}
 \end{bmatrix}
 $$
 
-The inverse of the inner matrix is
+\noindent The inverse of the $2 \times 2$ matrix is approximately
 
 $$
 \frac{1}{\frac{L^2}{4} - z^2}
@@ -303,10 +305,20 @@ $$
 \noindent Plugging this back in gives 
 
 \begin{eqnarray}
+\label{eq:matrixslf}
 	\frac{4}{L^2}[\frac{L}{2} ({\bf c}^T {\bf x})^2 + \frac{L}{2} ({\bf s}^T {\bf x})^2 - 2 z ({\bf c}^T {\bf x}) ({\bf s}^T {\bf x})] &=& \frac{2}{L}[({\bf c}^T {\bf x})^2 + ({\bf s}^T {\bf x})^2] - \frac{8z}{L^2} ({\bf c}^T {\bf x}) ({\bf s}^T {\bf x}) \nonumber 
 \end{eqnarray}
 
-\noindent Since the first term on the RHS is normalized by $1/L$, and the second term is normalized by $\frac{1}{L^2}$, the first term dominates this maximization (and if $z = 0$, or close to it, we know that the second term on the RHS goes away). Therefore, we focus on maximizing the first term in this expression. Notice that
+\noindent Since the first term on the RHS is normalized by $1/L$, and the second term is normalized by $\frac{1}{L^2}$, the first term dominates this maximization (and if $z = 0$, or close to it, we know that the second term on the RHS goes away). Another way to think about this is that ${\bf c}^T {\bf x}$, when viewed as ``the correlation between {\bf c} and {\bf x}'', would be maximized when ${\bf x} = {\bf c}$, and similarly ${\bf s}^T {\bf x}$ would be maximized when ${\bf s} = x$. Then using Equation \ref{eq:diagnonalapprox}, we can bound the term by
+
+\begin{eqnarray}
+\label{eq:diagbound}
+	\frac{8z}{L^2} ({\bf c}^T {\bf x}) ({\bf s}^T {\bf x}) &=& 8z (\frac{{\bf c}^T {\bf x}}{L}) (\frac{{\bf s}^T {\bf x}}{L}) \nonumber \\
+	&\leq& 2z \nonumber \\
+	&\leq& 4
+\end{eqnarray}
+
+In any case, I am arguing that the second term in Equation \ref{eq:matrixslf} is negligible, and we can focus on maximizing the first term. The key insight is that we can connect the first term to the Spectrogram. Notice that
 
 \begin{eqnarray}
 \label{eq:maxslfspec}
@@ -315,7 +327,7 @@ $$
 	&=& \frac{2}{L} |\sum_{t=S}^{S+L-1} x_t \omega_N^{-tF}|^2
 \end{eqnarray}
 
-Which looks strikingly similar to the Periodogram (he MLE estimate in \cite{kay1993fundamentals}). Recall the definition of the Sliding Window Discrete Fourier Transform (SWDFT), with length $n$ window size
+This is strikingly similar to the Periodogram (which is the MLE estimate in \cite{kay1993fundamentals}), the only difference is that the summation indices are different. To see how this connects with the Spectrogram, recall the definition of the Spectrogram computed using a Sliding Window Discrete Fourier Transform (SWDFT) with length $n$ windows
 
 \begin{eqnarray}
 \label{eq:swdft}
@@ -328,33 +340,47 @@ Which looks strikingly similar to the Periodogram (he MLE estimate in \cite{kay1
 
 \begin{eqnarray}
 \label{eq:optimizationslf}
-	\argmax_{S, L, F} && \frac{2}{L} |\sum_{t=S}^{S+L-1} x_t \omega_L^{-tf}|^2 \nonumber 
+	\argmax_{S, L, F} && \frac{2}{L} |\sum_{t=S}^{S+L-1} x_t \omega_L^{-tf}|^2 
 \end{eqnarray}
 
-\noindent Equation \ref{eq:optimizationslf} tells us that our estimates of S, L, and F will be the values that maximize the Sliding Window DFT across varying window sizes.
+\noindent Equation \ref{eq:optimizationslf} tells us that our estimates of S, L, and F will be the values that maximize the squared modulus of SWDFT coefficients across varying window sizes. 
 
-So in practice, how would we make these estimates? The first step would be to find the maximum squared modulus SWDFT across window sizes
+So, how would we make these estimates in practice? Notice that if we find the maximum squared modulus SWDFT coefficient across window sizes
 
 \begin{eqnarray}
 \label{eq:maxswdftwindow}
 	(\hat{k}, \hat{p}, \hat{n}) &=&\argmax_{k,p,n} |a_{k, p, n}|^2
 \end{eqnarray}
 
-\noindent Which gives the following estimates of S, L, and F
+\noindent We can translate these into estimates of S, L, and F
 
 \begin{eqnarray}
-	\hat{L} &=& \hat{n} \nonumber \\
 	\hat{S} &=& \hat{p} - \hat{n} + 1 \nonumber \\
+	\hat{L} &=& \hat{n} \nonumber \\
 	\hat{F} &=& \frac{\hat{k}}{\hat{n}}
 \end{eqnarray}
 
-\noindent The heavy computational component of this approach is repeatedly computing Spectrograms of varying window sizes. We are currently looking into methods to speed this up. Then with S, L, and F, you can easily obtain analytic solutions from Section \ref{sec:aphisigma} for A, $\phi$, and $\sigma$. If desired, further numerical optimization may be performed around the estimate of $\hat{F}$, which ensures we aren't restricting $F$ to the set of Fourier Frequencies. 
+\noindent Our overall estimation approach is summarized in Algorithm \ref{alg:localcosine}
 
-% \section{Results}
-% \label{sec:results}
+\begin{algorithm}
+\caption{MLE Estimation of Bursts Model} 
+\SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
+\Input{$x$, a length $N$ signal} 
+\SetAlgoLined
+- ($\hat{k}, \hat{p}, \hat{n}) = \argmax_{k, p, n} |a_{k, p, n}|^2$ \\
+- ($\hat{S}, \hat{L}, \hat{F}) = f(\hat{k}, \hat{p}, \hat{n})$ \\
+- Analytic solutions for $\hat{A}, \hat{\phi}, \hat{\sigma}$ using Section \ref{sec:aphisigma} \\
+\Output{MLE estimates $\hat{\theta} = [\hat{A}, \hat{\phi}, \hat{F}, \hat{S}, \hat{L}, \hat{\sigma}]$} 
+\label{alg::localcosine}
+\end{algorithm}
 
-% \section{Discussion}
-% \label{sec:discussion}
+The computationally intensive part of this approach is repeatedly computing the SWDFT of varying window sizes. We are currently looking into algorithms to speed this up. Finally, further numerical optimization may be performed around the $\hat{F}$, which allows us to search beyond the Fourier Frequencies. 
+
+\section{Results}
+\label{sec:results}
+
+\section{Discussion}
+\label{sec:discussion}
 
 \bibliographystyle{apa}
 \bibliography{references}

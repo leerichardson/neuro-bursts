@@ -3,10 +3,36 @@
 - Paper w/ SWDFT application to Bursts (If Desired by Collaborators)
 
 # --- Tasks --- 
-- Convert neuro-bursts directory to a Git repository
+- Run simulation studies that demonstrate properties of the procedure 
+	+ On the window size estimator 
+		- Max vs. Window Size on example signal 
+		- Max vs. Window Size on Beta-Bursts signal
+		- Simulation: Maximum across varying window sizes. Show that the maximum occurs when the window size equals the signal length.
+	+ On the maximum as the correct estimator
+		- Simulation: Does not the MAXIMUM, but the LARGEST K Values, better estimate the signal?
+	+ On the Multi-taper as the proper estimator 
+		- Simulation: Vary the Spectrogram estimator (multitaper, swdft, smoothed, morlet)
+	+ On comparing across window sizes
+		+ Simulation: Is the normalization across different window sizes fair?
+		+ Idea: Use Fisher's concept of the ''proportion'' in each window position. That way, Parsevals relation holds, and we are still in an identical situation. 
 
-- Fit the MLE procedure on the neuro-bursts application 
-	+ 
+- Fit the beta-bursts procedure on the data-set 
+	+ Re-Read the MLE materials I previously wrote (DONE)
+	+ Add a restriction over F (Fourier Frequencies) (DONE) 
+		- Lesson: Still fairly slow. Better to optimize over window sizes
+	- Program the optimization over window size on an example trial 
+
+- Write up a polished beta-bursts document 
+	+ Add a Figure with a sample burst from the dataset (DONE)
+	+ Write first draft of document (DONE)
+	+ Polish, re-read, send the finalized document to Bill
+	+ Write: Literature Review of Local Harmonic Model 
+	+ Write: Literature review of methodology for bursts application 
+		- Understand the exact steps Mikael/Pawel used to produce their plots 
+			+ E-mail Pawel to understand which parts of the code correspond to which parts of the procedure. 
+
+- Theory: The "above threshold" method may underestimate the length of a signal drastically, because it doesn't account for the build up.
+	+ Check if this is true empirically 
 
 - Read, Summarize Local Harmonic Regression Literature 
 	+ Irizarry 1998 Additive Sound (DONE)
@@ -15,19 +41,15 @@
 	+ Irizarry Asymptotics 
 	+ Irizarry Locally meaningful 
 	+ Irizarry Local Likelihood 
-	+ Convert Directory Notebook into .html webpage 
+	+ Hanaan (3 Papers + Books)
+	+ Brown (Correction to Hanaan)
+	+ Walker 
+	+ Rosenblatt
+	+ Convert Directory Notebook into .html webpage
 
-- Understand the exact steps Mikael/Pawel used to produce their plots 
-	+ Write a new section in Beta-Bursts document that summarizes the procedure
-	+ E-mail Pawel to understand which parts of the code correspond to which parts of the procedure. 
-
-- Theory: The "above threshold" method may underestimate the length of a signal drastically, because it doesn't account for the build up. 
-
-- Look into restricting F to be a Fourier Frequency.
-	+ This is what RAFA did!
-	+ Or, extend to use an over-complete Fourier dictionary: 
-		+ Can we extend the FFT to this case? Non-uniform FFT?
-		"The most well-known example is the standard Fourier dictionary for which we have the fast Fourier transform algorithm. A typical implementation requires 2 · n storage locations and 4·n·J multiplications if n is dyadic: n = 2J . Hence for very long signals we can apply Φ and ΦT with much less storage and time than the matrices would nominally require. Simple adaptation of this idea leads to an algorithm for over-complete Fourier dictionaries."
+- Look into over-complete dictionaries for F:
+	+ Can we extend the FFT to this case? Non-uniform FFT? From Donoho:
+	"The most well-known example is the standard Fourier dictionary for which we have the fast Fourier transform algorithm. A typical implementation requires 2 · n storage locations and 4·n·J multiplications if n is dyadic: n = 2J . Hence for very long signals we can apply Φ and ΦT with much less storage and time than the matrices would nominally require. Simple adaptation of this idea leads to an algorithm for over-complete Fourier dictionaries."
 
 # --- Longer Term Tasks ---
 - Read three articles on how to compute simple filters
