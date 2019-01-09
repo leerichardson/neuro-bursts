@@ -37,29 +37,32 @@
 \maketitle
 
 \section{Introduction}
-This document proposes a statistical model to detect ``Bursts'' in Local Field Potential (LFP) signals, and give a maximum-likelihood estimation procedure for this model. By bursts, I mean local (in time) signal oscillations at a particular frequency. The motivation for developing burst detection methodology comes from \cite{lundqvist2016gamma}, who finds that bursts, {\it not} sustained oscillations, underly working memory. 
+This document proposes a statistical model and estimation procedure for to detect ``Bursts'' in Local Field Potential (LFP) signals. By bursts, I mean local (in time) oscillations at particular frequencies. The motivation for burst detection comes from \cite{lundqvist2016gamma}, who finds that bursts, {\it not} sustained oscillations, underly working memory. 
 
 \section{Literature Review}
 \label{sec:lit-review}
+
+\section{Data}
+\label{sec:data}
 
 \section{A Statistical Model for Bursts}
 \label{sec:model}
 
 \begin{figure}[!ht]
   \centering
-  \includegraphics[width = 15cm, scale=1]{images/local-signal-example.png}
-  \caption{Top: Time series of a local signal (e.g. burst) embedded in noise. The true underlying signal is the red line, and the signal estimated by our procedure is colored in blue. Bottom Sliding Window Discrete Fourier Transform (SWDFT) of the time-series, which indicates where and what frequency the burst occurs. The SWDFT may be considered an estimator of the Spectrogram.}
-\label{fig:theoretical-burst}
+  \includegraphics[width = 15cm, scale=1]{images/sample-burst.png}
+  \caption{Top: An example Local Field Potential Signal in out data-set that displays ``bursting'' behavior. The red line is a trend-filter estimate of the slow trend in the signal, which we remove for spectral analysis. Bottom: Multi-taper SWDFT of the de-trended LFP signal. We see bursting behavior around 40 Hz, which corresponds to the ``fixation'' part of the trial.}
+\label{fig:example-burst}
 \end{figure}
 
-A graphical example of a theoretical burst is shown in Figure \ref{fig:theoretical-burst}. Figure \ref{fig:theoretical-burst} suggests a simple deterministic model for a burst, namely, a cosine function multiplied by a window:
+A graphical example of a burst in our data-set is shown in Figure \ref{fig:example-burst}. Figure \ref{fig:example-burst} shows that, for a short time window, the LFP signal has oscillations in the 40-60 Hz range. This short oscillation is what we refer to as a ``Burst''. This observation suggests a simple deterministic model for a ``burst'' in our LFP signal
 
 \begin{eqnarray}
 	\label{eq:deterministic}
 	g_t &=& A \cos(\frac{2 \pi F t}{N} + \phi) \cdot \mathbb{1}_{S, S + L - 1}(t)
 \end{eqnarray}
 
-\noindent Equation \ref{eq:deterministic} has $5$ parameters:
+\noindent Which is simply a cosine function multiplied by a box-car window. Equation \ref{eq:deterministic} has $5$ parameters:
 
 \begin{itemize}
 \setlength\itemsep{.1em}
@@ -77,11 +80,13 @@ A graphical example of a theoretical burst is shown in Figure \ref{fig:theoretic
 x_t &=& g_t + \epsilon_t 
 \end{eqnarray}
 
-\noindent Where $\epsilon_t \sim N(0, \sigma^2)$ and $\epsilon_t$ is i.i.d.
+\noindent To keep things simple, assume $\epsilon_t \sim N(0, \sigma^2)$ and $\epsilon_t$ is i.i.d.
 
 \section{Estimation}
 \label{sec:estimation}
-Now that we've proposed a statistical model for bursts (Equation \ref{eq:statistical-model}), we need to estimate the parameters given an arbitrary signal. We use maximum likelihood for parameter estimation. Section \ref{sec:analytic} derives analytic solutions for three of the six parameters (A, $\phi$, and $\sigma$), using a standard trick from harmonic regression. Section \ref{sec:numericalslf} shows how to solve for the remaining three parameters (S, L, and F) numerically, using the Spectrogram. 
+
+
+Now that we've proposed a statistical model(Equation \ref{eq:statistical-model}), given an arbitrary signal, we need to estimate the parameters. Section \ref{sec:analytic} derives analytic solutions for three of the six parameters (A, $\phi$, and $\sigma$), using a standard trick from harmonic regression. Section \ref{sec:numericalslf} shows how to solve for the remaining three parameters (S, L, and F) numerically, using a Spectrogram. 
 
 \subsection{Estimating $A, \phi$, and $\sigma$}
 \label{sec:aphisigma}
